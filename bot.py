@@ -163,6 +163,47 @@ async def votar(ctx, sospechoso: discord.Member):
     votos_ciudadanos[ctx.author] = sospechoso
     await ctx.send(f"🗳️ {ctx.author.mention} ha votado por eliminar a {sospechoso.mention}.")
 
+def verificar_ganador():
+    global jugadores, rol_jugadores
+
+    # Contar los roles restantes
+    mafiosos_restantes = sum(1 for rol in rol_jugadores.values() if rol == "Mafioso")
+    ciudadanos_restantes = len(jugadores) - mafiosos_restantes
+
+    if mafiosos_restantes == 0:
+        return "🎉 ¡Los ciudadanos han eliminado a todos los mafiosos! ¡Los ciudadanos ganan! 🏆"
+    elif mafiosos_restantes >= ciudadanos_restantes:
+        return "💀 ¡Los mafiosos han tomado el control del pueblo! ¡La mafia gana! 🏆"
+
+    return None  # El juego sigue
+
+
+@bot.command()
+async def eliminar(ctx):
+    """Elimina al jugador más votado, verifica el ganador y anuncia si la partida sigue."""
+    global votos_ciudadanos, fase_actual, rol_jugadores, jugadores
+
+    if fase_actual != "día":
+        await ctx.send("🚨 La eliminación solo ocurre durante el día.")
+        return
+
+    # Determinar el jugador más votado
+    sospechoso_eliminado = max(set(votos_ciudadanos.values()), key=list(votos_ciudadanos.values()).count)
+    votos_ciudadanos.clear()
+
+    # Obtener el rol del jugador eliminado y removerlo del juego
+    rol = rol_jugadores.pop(sospechoso_eliminado, "Desconocido")
+    jugadores.remove(sospechoso_eliminado)
+
+    await ctx.send(f"🚨 {sospechoso_eliminado.mention} ha sido eliminado. Era un **{rol}**.")
+
+    # Verificar si el juego termina
+    resultado = verificar_ganador()
+    if resultado:
+        await ctx.send(resultado)
+        await reiniciar(ctx)
+    else:
+        await ctx.send("🎭 La partida continúa... ¡Prepárense para la siguiente ronda!")
 
 
 # Iniciar el bot
