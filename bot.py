@@ -24,6 +24,8 @@ rol_jugadores = {}
 # Variables de fase del juego
 fase_actual = "día"  
 votos_mafia = {}  
+votos_ciudadanos = {}  
+
 
 @bot.event
 async def on_ready():
@@ -148,6 +150,19 @@ async def amanecer(ctx):
     votos_mafia.clear()
 
     await ctx.send(f"🌞 Amaneció... y encontramos el cuerpo de **{victima_final}**. ¡Los ciudadanos están aterrorizados!")
+
+@bot.command()
+async def votar(ctx, sospechoso: discord.Member):
+    """Fase de votación de ciudadanos."""
+    global fase_actual, votos_ciudadanos
+
+    if fase_actual != "día":
+        await ctx.send("🗳️ La votación solo ocurre durante el día.")
+        return
+
+    votos_ciudadanos[ctx.author] = sospechoso
+    await ctx.send(f"🗳️ {ctx.author.mention} ha votado por eliminar a {sospechoso.mention}.")
+
 
 
 # Iniciar el bot
