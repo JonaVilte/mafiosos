@@ -130,6 +130,25 @@ async def matar(ctx, victima: str):
     else:
         await ctx.send("❌ Ya has votado. Espera a la mañana.")
 
+@bot.command()
+async def amanecer(ctx):
+    global fase_actual, votos_mafia
+
+    if fase_actual != "noche":
+        await ctx.send("🌞 Ya es de día.")
+        return
+
+    fase_actual = "día"
+
+    if not votos_mafia:
+        await ctx.send("🌞 Amaneció, pero nadie fue eliminado esta noche.")
+        return
+
+    victima_final = max(set(votos_mafia.values()), key=list(votos_mafia.values()).count)
+    votos_mafia.clear()
+
+    await ctx.send(f"🌞 Amaneció... y encontramos el cuerpo de **{victima_final}**. ¡Los ciudadanos están aterrorizados!")
+
 
 # Iniciar el bot
 bot.run(TOKEN)
